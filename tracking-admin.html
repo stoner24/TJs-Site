@@ -7,19 +7,20 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:#0a0a0a;color:#f0f0ec;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
-    .card{background:#0d0d0d;border:1px solid #222;padding:2.5rem;width:100%;max-width:480px}
+    .card{background:#0d0d0d;border:1px solid #222;padding:2.5rem;width:100%;max-width:500px}
     h1{font-size:1.1rem;font-weight:700;letter-spacing:0.08em;margin-bottom:0.35rem}
     .sub{font-size:0.78rem;color:#555;margin-bottom:1.75rem;line-height:1.6}
-    .section{margin-bottom:1.75rem}
-    .section-label{font-size:0.62rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#555;margin-bottom:0.65rem}
-    label{display:block;font-size:0.72rem;color:#888;margin-bottom:0.3rem}
-    input[type=text],input[type=url],input[type=password]{width:100%;background:#111;border:1px solid #2a2a2a;color:#f0f0ec;font-size:0.85rem;padding:0.7rem 0.85rem;transition:border-color 0.2s;margin-bottom:0.5rem}
+    .sbl{font-size:0.62rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#555;margin-bottom:0.75rem}
+    label{display:block;font-size:0.72rem;color:#888;margin-bottom:0.3rem;margin-top:0.75rem}
+    input[type=password]{width:100%;background:#111;border:1px solid #2a2a2a;color:#f0f0ec;font-size:0.85rem;padding:0.7rem 0.85rem;margin-bottom:0.5rem;transition:border-color 0.2s}
     input:focus{outline:none;border-color:#555}
     input::placeholder{color:#333}
-    .btn{width:100%;padding:0.75rem;background:#f0f0ec;border:none;color:#0a0a0a;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
+    .btn{width:100%;padding:0.72rem;background:#f0f0ec;border:none;color:#0a0a0a;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
     .btn:hover{background:#ccc}
-    .btn-danger{background:#1a0a0a;border:1px solid #553333;color:#884444;margin-top:0.5rem}
-    .btn-danger:hover{background:#2a0a0a;color:#e74c3c;border-color:#e74c3c}
+    .btn-sm{width:auto;padding:0.3rem 0.7rem;font-size:0.62rem;background:#1a0a0a;border:1px solid #553333;color:#884444}
+    .btn-sm:hover{background:#2a0a0a;color:#e74c3c;border-color:#e74c3c}
+    .btn-sec{background:#111;border:1px solid #333;color:#888;margin-top:0.5rem}
+    .btn-sec:hover{background:#1a1a1a;color:#f0f0ec}
     .msg{font-size:0.72rem;padding:0.6rem 0.75rem;margin-top:0.6rem;display:none;border:1px solid}
     .msg.ok{background:#0d1f0d;border-color:#2d4d25;color:#5d9e50}
     .msg.err{background:#1f0d0d;border-color:#4d2525;color:#e74c3c}
@@ -27,68 +28,54 @@
     .divider{border:none;border-top:1px solid #1a1a1a;margin:1.75rem 0}
     .back{display:block;text-align:center;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:#444;margin-top:1.25rem;text-decoration:none;transition:color 0.2s}
     .back:hover{color:#888}
-    .current{font-size:0.68rem;color:#4a7c3f;margin-top:0.3rem;word-break:break-all}
-    .hint{font-size:0.68rem;color:#444;line-height:1.6;margin-top:0.35rem}
-    .hint ol{padding-left:1.1rem;margin-top:0.25rem}
-    .hint li{margin-bottom:0.15rem}
-    .hint strong{color:#666}
-
-    /* Login overlay */
+    .rider-row{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #151515}
+    .rider-row:last-child{border-bottom:none}
+    .rider-info{flex:1}
+    .rider-info strong{font-size:0.82rem;color:#ccc;display:block}
+    .rider-info span{font-size:0.65rem;color:#444}
     #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;align-items:center;justify-content:center;z-index:100;padding:2rem}
-    #adminScreen{display:none}
+    #adminScreen{display:none;align-items:center;justify-content:center;min-height:100vh;width:100%}
+    .section{margin-bottom:1.5rem}
   </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="card">
     <h1>Admin Login</h1>
-    <p class="sub">Enter the admin password to access tracking controls.</p>
-    <div class="section">
-      <label for="pwInput">Password</label>
-      <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPW()"/>
-      <button class="btn" onclick="checkPW()">Login</button>
-      <div class="msg err" id="pwMsg"></div>
-    </div>
+    <p class="sub">Enter the admin password to manage live tracking.</p>
+    <label>Password</label>
+    <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPW()"/>
+    <button class="btn" onclick="checkPW()">Login</button>
+    <div class="msg err" id="pwMsg"></div>
     <a class="back" href="tracking.html">← Back to Tracking Map</a>
   </div>
 </div>
 
-<!-- ADMIN SCREEN -->
 <div id="adminScreen">
   <div class="card">
     <h1>Tracking Admin</h1>
-    <p class="sub">Manage live tracking sources and session links.</p>
+    <p class="sub">Manage active riders and tracking sessions.</p>
 
-    <!-- GARMIN -->
     <div class="section">
-      <div class="section-label">Garmin LiveTrack</div>
-      <label>Current Link</label>
-      <div class="current" id="currentGarmin">None set</div>
-      <button class="btn btn-danger" onclick="clearGarmin()" style="margin-top:0.75rem">Reset / Clear Garmin Link</button>
-      <div class="msg" id="garminMsg"></div>
-      <div class="hint" style="margin-top:0.75rem">
-        Anyone can set a new Garmin link from the main tracking page. Use Reset above to clear it when a session ends.
-      </div>
+      <div class="sbl">Active Riders</div>
+      <div id="riderList"><div style="font-size:0.75rem;color:#333">Loading...</div></div>
+      <button class="btn btn-sec" onclick="loadRiders()" style="margin-top:0.75rem">↻ Refresh</button>
+      <div class="msg" id="riderMsg"></div>
     </div>
 
     <hr class="divider"/>
 
-    <!-- SPOT -->
     <div class="section">
-      <div class="section-label">SPOT Satellite</div>
-      <p class="hint">SPOT runs automatically in the background using your satellite device. No action needed.</p>
-      <div style="margin-top:0.5rem">
-        <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid #4a7c3f;color:#5d9e50;padding:0.2rem 0.6rem;">Always Active</span>
-      </div>
+      <div class="sbl">SPOT Satellite</div>
+      <p style="font-size:0.72rem;color:#444;line-height:1.6">SPOT runs automatically in the background using your satellite device.</p>
+      <div style="margin-top:0.5rem"><span style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid #4a7c3f;color:#5d9e50;padding:0.2rem 0.6rem;">Always Active</span></div>
     </div>
 
     <hr class="divider"/>
 
-    <!-- CHANGE PASSWORD -->
     <div class="section">
-      <div class="section-label">Change Password</div>
+      <div class="sbl">Change Password</div>
       <label>New Password</label>
       <input type="password" id="newPW1" placeholder="New password"/>
       <label>Confirm Password</label>
@@ -97,80 +84,87 @@
       <div class="msg" id="pwChangeMsg"></div>
     </div>
 
-    <button class="btn btn-danger" onclick="logout()" style="margin-top:0">Log Out</button>
+    <button class="btn btn-sec" onclick="logout()">Log Out</button>
     <a class="back" href="tracking.html">← Back to Tracking Map</a>
   </div>
 </div>
 
 <script>
+  const FIREBASE   = "https://breakaway-timing-results-default-rtdb.europe-west1.firebasedatabase.app";
   const DEFAULT_PW = "Password!";
 
-  function getStoredPW() {
-    return localStorage.getItem("adminPW") || DEFAULT_PW;
-  }
+  function getPW() { return localStorage.getItem("adminPW") || DEFAULT_PW; }
 
   function checkPW() {
-    const entered = document.getElementById("pwInput").value;
-    if (entered === getStoredPW()) {
-      sessionStorage.setItem("adminAuth", "1");
+    if (document.getElementById("pwInput").value === getPW()) {
+      sessionStorage.setItem("adminAuth","1");
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("adminScreen").style.display = "flex";
-      document.getElementById("adminScreen").style.alignItems = "center";
-      document.getElementById("adminScreen").style.justifyContent = "center";
-      document.getElementById("adminScreen").style.minHeight = "100vh";
-      loadAdminData();
+      loadRiders();
     } else {
-      const msg = document.getElementById("pwMsg");
-      msg.textContent = "Incorrect password.";
-      msg.className = "msg err show";
-      setTimeout(() => msg.classList.remove("show"), 3000);
+      showMsg("pwMsg","err","Incorrect password.");
     }
   }
 
-  function loadAdminData() {
-    const saved = localStorage.getItem("garminURL") || "";
-    document.getElementById("currentGarmin").textContent = saved || "None set";
+  function loadRiders() {
+    fetch(FIREBASE + "/riders.json")
+      .then(r => r.json())
+      .then(data => {
+        const now = Date.now();
+        const list = document.getElementById("riderList");
+        if (!data) { list.innerHTML = '<div style="font-size:0.75rem;color:#333">No riders</div>'; return; }
+
+        const entries = Object.entries(data);
+        const active = entries.filter(([,v]) => v.expiresAt >= now);
+        const expired = entries.filter(([,v]) => v.expiresAt < now);
+
+        // Auto-delete expired
+        expired.forEach(([key]) => fetch(FIREBASE+"/riders/"+key+".json",{method:"DELETE"}));
+
+        if (!active.length) { list.innerHTML = '<div style="font-size:0.75rem;color:#333">No active riders</div>'; return; }
+
+        list.innerHTML = active.map(([key, r]) => {
+          const minsLeft = Math.round((r.expiresAt - now) / 60000);
+          const timeLeft = minsLeft > 59 ? Math.floor(minsLeft/60) + "h " + (minsLeft%60) + "m left" : minsLeft + "m left";
+          return '<div class="rider-row">' +
+            '<div class="rider-info"><strong>' + r.name + '</strong><span>' + timeLeft + '</span></div>' +
+            '<button class="btn btn-sm" onclick="removeRider(\''+key+'\')">Remove</button>' +
+            '</div>';
+        }).join("");
+      })
+      .catch(() => showMsg("riderMsg","err","Failed to load riders."));
   }
 
-  function clearGarmin() {
-    localStorage.removeItem("garminURL");
-    document.getElementById("currentGarmin").textContent = "None set";
-    showMsg("garminMsg", "ok", "Garmin link cleared. SPOT continues running.");
+  function removeRider(key) {
+    fetch(FIREBASE + "/riders/" + key + ".json", { method: "DELETE" })
+      .then(() => { showMsg("riderMsg","ok","Rider removed."); loadRiders(); })
+      .catch(() => showMsg("riderMsg","err","Failed to remove rider."));
   }
 
   function changePW() {
     const p1 = document.getElementById("newPW1").value;
     const p2 = document.getElementById("newPW2").value;
-    if (!p1) { showMsg("pwChangeMsg", "err", "Please enter a new password."); return; }
-    if (p1 !== p2) { showMsg("pwChangeMsg", "err", "Passwords do not match."); return; }
+    if (!p1) { showMsg("pwChangeMsg","err","Enter a new password."); return; }
+    if (p1 !== p2) { showMsg("pwChangeMsg","err","Passwords do not match."); return; }
     localStorage.setItem("adminPW", p1);
     document.getElementById("newPW1").value = "";
     document.getElementById("newPW2").value = "";
-    showMsg("pwChangeMsg", "ok", "Password updated successfully.");
+    showMsg("pwChangeMsg","ok","Password updated.");
   }
 
-  function logout() {
-    sessionStorage.removeItem("adminAuth");
-    location.reload();
-  }
+  function logout() { sessionStorage.removeItem("adminAuth"); location.reload(); }
 
   function showMsg(id, type, text) {
     const el = document.getElementById(id);
-    el.textContent = text;
-    el.className = "msg " + type + " show";
+    el.textContent = text; el.className = "msg "+type+" show";
     setTimeout(() => el.classList.remove("show"), 4000);
   }
 
-  // Auto-login if already authenticated this session
   if (sessionStorage.getItem("adminAuth") === "1") {
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("adminScreen").style.display = "flex";
-    document.getElementById("adminScreen").style.alignItems = "center";
-    document.getElementById("adminScreen").style.justifyContent = "center";
-    document.getElementById("adminScreen").style.minHeight = "100vh";
-    loadAdminData();
+    loadRiders();
   }
 </script>
-
 </body>
 </html>

@@ -7,120 +7,168 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:#0a0a0a;color:#f0f0ec;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
-
-    .card{background:#0d0d0d;border:1px solid #222;padding:2.5rem;width:100%;max-width:520px}
-
+    .card{background:#0d0d0d;border:1px solid #222;padding:2.5rem;width:100%;max-width:480px}
     h1{font-size:1.1rem;font-weight:700;letter-spacing:0.08em;margin-bottom:0.35rem}
-    .sub{font-size:0.8rem;color:#555;margin-bottom:2rem;line-height:1.6}
-
-    .section{margin-bottom:2rem}
-    .section-label{font-size:0.65rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#555;margin-bottom:0.75rem}
-
-    label{display:block;font-size:0.72rem;color:#888;margin-bottom:0.35rem}
-
-    input[type=text],input[type=url]{
-      width:100%;background:#111;border:1px solid #2a2a2a;color:#f0f0ec;
-      font-size:0.85rem;padding:0.7rem 0.85rem;transition:border-color 0.2s;
-    }
+    .sub{font-size:0.78rem;color:#555;margin-bottom:1.75rem;line-height:1.6}
+    .section{margin-bottom:1.75rem}
+    .section-label{font-size:0.62rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#555;margin-bottom:0.65rem}
+    label{display:block;font-size:0.72rem;color:#888;margin-bottom:0.3rem}
+    input[type=text],input[type=url],input[type=password]{width:100%;background:#111;border:1px solid #2a2a2a;color:#f0f0ec;font-size:0.85rem;padding:0.7rem 0.85rem;transition:border-color 0.2s;margin-bottom:0.5rem}
     input:focus{outline:none;border-color:#555}
     input::placeholder{color:#333}
-
-    .hint{font-size:0.68rem;color:#444;margin-top:0.4rem;line-height:1.5}
-    .hint a{color:#555;text-decoration:underline}
-
-    .btn{width:100%;padding:0.8rem;background:#f0f0ec;border:none;color:#0a0a0a;
-      font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
-      cursor:pointer;transition:background 0.2s;margin-top:0.5rem}
+    .btn{width:100%;padding:0.75rem;background:#f0f0ec;border:none;color:#0a0a0a;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
     .btn:hover{background:#ccc}
-    .btn-secondary{background:#111;border:1px solid #333;color:#888;margin-top:0.5rem}
-    .btn-secondary:hover{background:#1a1a1a;color:#f0f0ec}
+    .btn-danger{background:#1a0a0a;border:1px solid #553333;color:#884444;margin-top:0.5rem}
+    .btn-danger:hover{background:#2a0a0a;color:#e74c3c;border-color:#e74c3c}
+    .msg{font-size:0.72rem;padding:0.6rem 0.75rem;margin-top:0.6rem;display:none;border:1px solid}
+    .msg.ok{background:#0d1f0d;border-color:#2d4d25;color:#5d9e50}
+    .msg.err{background:#1f0d0d;border-color:#4d2525;color:#e74c3c}
+    .msg.show{display:block}
+    .divider{border:none;border-top:1px solid #1a1a1a;margin:1.75rem 0}
+    .back{display:block;text-align:center;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:#444;margin-top:1.25rem;text-decoration:none;transition:color 0.2s}
+    .back:hover{color:#888}
+    .current{font-size:0.68rem;color:#4a7c3f;margin-top:0.3rem;word-break:break-all}
+    .hint{font-size:0.68rem;color:#444;line-height:1.6;margin-top:0.35rem}
+    .hint ol{padding-left:1.1rem;margin-top:0.25rem}
+    .hint li{margin-bottom:0.15rem}
+    .hint strong{color:#666}
 
-    .status-msg{font-size:0.75rem;padding:0.65rem 0.85rem;margin-top:0.75rem;display:none}
-    .status-msg.success{background:#0d1f0d;border:1px solid #2d4d25;color:#5d9e50}
-    .status-msg.error{background:#1f0d0d;border:1px solid #4d2525;color:#e74c3c}
-    .status-msg.show{display:block}
-
-    .current-val{font-size:0.72rem;color:#4a7c3f;margin-top:0.4rem;word-break:break-all}
-
-    .divider{border:none;border-top:1px solid #1a1a1a;margin:2rem 0}
-
-    .back-link{display:block;text-align:center;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#444;margin-top:1.5rem;text-decoration:none;transition:color 0.2s}
-    .back-link:hover{color:#888}
-
-    .steps{padding-left:1.25rem;margin-top:0.5rem}
-    .steps li{font-size:0.72rem;color:#555;line-height:1.8}
-    .steps li strong{color:#888}
+    /* Login overlay */
+    #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;align-items:center;justify-content:center;z-index:100;padding:2rem}
+    #adminScreen{display:none}
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>Tracking Admin</h1>
-  <p class="sub">Update your Garmin LiveTrack link before a race. Anyone can use this page to add their own tracking link.</p>
-
-  <!-- GARMIN SECTION -->
-  <div class="section">
-    <div class="section-label">Garmin LiveTrack URL</div>
-    <label for="garminInput">Paste your LiveTrack share link</label>
-    <input type="url" id="garminInput" placeholder="https://livetrack.garmin.com/session/..." />
-    <div class="hint">
-      How to get this link:<br>
-      <ol class="steps">
-        <li>On your Edge 530/540, go to <strong>Settings → Activity Tracking → LiveTrack</strong></li>
-        <li>Enable LiveTrack and tap <strong>Start Session</strong></li>
-        <li>Share the link to yourself via email or text</li>
-        <li>Paste that link above</li>
-      </ol>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="card">
+    <h1>Admin Login</h1>
+    <p class="sub">Enter the admin password to access tracking controls.</p>
+    <div class="section">
+      <label for="pwInput">Password</label>
+      <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPW()"/>
+      <button class="btn" onclick="checkPW()">Login</button>
+      <div class="msg err" id="pwMsg"></div>
     </div>
-    <div class="current-val" id="currentGarmin"></div>
-    <button class="btn" onclick="saveGarmin()">Save Garmin Link</button>
-    <button class="btn btn-secondary" onclick="clearGarmin()">Clear / End Session</button>
-    <div class="status-msg" id="garminMsg"></div>
+    <a class="back" href="tracking.html">← Back to Tracking Map</a>
   </div>
+</div>
 
-  <hr class="divider"/>
+<!-- ADMIN SCREEN -->
+<div id="adminScreen">
+  <div class="card">
+    <h1>Tracking Admin</h1>
+    <p class="sub">Manage live tracking sources and session links.</p>
 
-  <!-- SPOT SECTION -->
-  <div class="section">
-    <div class="section-label">SPOT Feed Status</div>
-    <p class="hint" style="color:#444;">SPOT tracking runs automatically in the background using your satellite device. No action needed — it always stays on.</p>
-    <div style="margin-top:0.5rem">
-      <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid #4a7c3f;color:#5d9e50;padding:0.2rem 0.6rem;">Always Active</span>
+    <!-- GARMIN -->
+    <div class="section">
+      <div class="section-label">Garmin LiveTrack</div>
+      <label>Current Link</label>
+      <div class="current" id="currentGarmin">None set</div>
+      <button class="btn btn-danger" onclick="clearGarmin()" style="margin-top:0.75rem">Reset / Clear Garmin Link</button>
+      <div class="msg" id="garminMsg"></div>
+      <div class="hint" style="margin-top:0.75rem">
+        Anyone can set a new Garmin link from the main tracking page. Use Reset above to clear it when a session ends.
+      </div>
     </div>
-  </div>
 
-  <a class="back-link" href="tracking.html">← Back to Tracking Map</a>
+    <hr class="divider"/>
+
+    <!-- SPOT -->
+    <div class="section">
+      <div class="section-label">SPOT Satellite</div>
+      <p class="hint">SPOT runs automatically in the background using your satellite device. No action needed.</p>
+      <div style="margin-top:0.5rem">
+        <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid #4a7c3f;color:#5d9e50;padding:0.2rem 0.6rem;">Always Active</span>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="section">
+      <div class="section-label">Change Password</div>
+      <label>New Password</label>
+      <input type="password" id="newPW1" placeholder="New password"/>
+      <label>Confirm Password</label>
+      <input type="password" id="newPW2" placeholder="Confirm password"/>
+      <button class="btn" onclick="changePW()">Update Password</button>
+      <div class="msg" id="pwChangeMsg"></div>
+    </div>
+
+    <button class="btn btn-danger" onclick="logout()" style="margin-top:0">Log Out</button>
+    <a class="back" href="tracking.html">← Back to Tracking Map</a>
+  </div>
 </div>
 
 <script>
-  // Show current saved value on load
-  const saved = localStorage.getItem("garminURL") || "";
-  if (saved) {
-    document.getElementById("currentGarmin").textContent = "Current: " + saved;
-    document.getElementById("garminInput").value = saved;
+  const DEFAULT_PW = "Password!";
+
+  function getStoredPW() {
+    return localStorage.getItem("adminPW") || DEFAULT_PW;
   }
 
-  function saveGarmin() {
-    const val = document.getElementById("garminInput").value.trim();
-    if (!val) { showMsg("garminMsg", "error", "Please enter a valid URL."); return; }
-    if (!val.startsWith("http")) { showMsg("garminMsg", "error", "URL must start with http or https."); return; }
-    localStorage.setItem("garminURL", val);
-    document.getElementById("currentGarmin").textContent = "Saved: " + val;
-    showMsg("garminMsg", "success", "Garmin link saved! The tracking map will update automatically.");
+  function checkPW() {
+    const entered = document.getElementById("pwInput").value;
+    if (entered === getStoredPW()) {
+      sessionStorage.setItem("adminAuth", "1");
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("adminScreen").style.display = "flex";
+      document.getElementById("adminScreen").style.alignItems = "center";
+      document.getElementById("adminScreen").style.justifyContent = "center";
+      document.getElementById("adminScreen").style.minHeight = "100vh";
+      loadAdminData();
+    } else {
+      const msg = document.getElementById("pwMsg");
+      msg.textContent = "Incorrect password.";
+      msg.className = "msg err show";
+      setTimeout(() => msg.classList.remove("show"), 3000);
+    }
+  }
+
+  function loadAdminData() {
+    const saved = localStorage.getItem("garminURL") || "";
+    document.getElementById("currentGarmin").textContent = saved || "None set";
   }
 
   function clearGarmin() {
     localStorage.removeItem("garminURL");
-    document.getElementById("garminInput").value = "";
-    document.getElementById("currentGarmin").textContent = "";
-    showMsg("garminMsg", "success", "Garmin link cleared. SPOT tracking continues in background.");
+    document.getElementById("currentGarmin").textContent = "None set";
+    showMsg("garminMsg", "ok", "Garmin link cleared. SPOT continues running.");
+  }
+
+  function changePW() {
+    const p1 = document.getElementById("newPW1").value;
+    const p2 = document.getElementById("newPW2").value;
+    if (!p1) { showMsg("pwChangeMsg", "err", "Please enter a new password."); return; }
+    if (p1 !== p2) { showMsg("pwChangeMsg", "err", "Passwords do not match."); return; }
+    localStorage.setItem("adminPW", p1);
+    document.getElementById("newPW1").value = "";
+    document.getElementById("newPW2").value = "";
+    showMsg("pwChangeMsg", "ok", "Password updated successfully.");
+  }
+
+  function logout() {
+    sessionStorage.removeItem("adminAuth");
+    location.reload();
   }
 
   function showMsg(id, type, text) {
     const el = document.getElementById(id);
-    el.className = "status-msg " + type + " show";
     el.textContent = text;
+    el.className = "msg " + type + " show";
     setTimeout(() => el.classList.remove("show"), 4000);
+  }
+
+  // Auto-login if already authenticated this session
+  if (sessionStorage.getItem("adminAuth") === "1") {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("adminScreen").style.display = "flex";
+    document.getElementById("adminScreen").style.alignItems = "center";
+    document.getElementById("adminScreen").style.justifyContent = "center";
+    document.getElementById("adminScreen").style.minHeight = "100vh";
+    loadAdminData();
   }
 </script>
 

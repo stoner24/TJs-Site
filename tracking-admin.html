@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tracking Admin · TJ Stone</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#0a0a0a;color:#f0f0ec;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+
+    .card{background:#0d0d0d;border:1px solid #222;padding:2.5rem;width:100%;max-width:520px}
+
+    h1{font-size:1.1rem;font-weight:700;letter-spacing:0.08em;margin-bottom:0.35rem}
+    .sub{font-size:0.8rem;color:#555;margin-bottom:2rem;line-height:1.6}
+
+    .section{margin-bottom:2rem}
+    .section-label{font-size:0.65rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#555;margin-bottom:0.75rem}
+
+    label{display:block;font-size:0.72rem;color:#888;margin-bottom:0.35rem}
+
+    input[type=text],input[type=url]{
+      width:100%;background:#111;border:1px solid #2a2a2a;color:#f0f0ec;
+      font-size:0.85rem;padding:0.7rem 0.85rem;transition:border-color 0.2s;
+    }
+    input:focus{outline:none;border-color:#555}
+    input::placeholder{color:#333}
+
+    .hint{font-size:0.68rem;color:#444;margin-top:0.4rem;line-height:1.5}
+    .hint a{color:#555;text-decoration:underline}
+
+    .btn{width:100%;padding:0.8rem;background:#f0f0ec;border:none;color:#0a0a0a;
+      font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+      cursor:pointer;transition:background 0.2s;margin-top:0.5rem}
+    .btn:hover{background:#ccc}
+    .btn-secondary{background:#111;border:1px solid #333;color:#888;margin-top:0.5rem}
+    .btn-secondary:hover{background:#1a1a1a;color:#f0f0ec}
+
+    .status-msg{font-size:0.75rem;padding:0.65rem 0.85rem;margin-top:0.75rem;display:none}
+    .status-msg.success{background:#0d1f0d;border:1px solid #2d4d25;color:#5d9e50}
+    .status-msg.error{background:#1f0d0d;border:1px solid #4d2525;color:#e74c3c}
+    .status-msg.show{display:block}
+
+    .current-val{font-size:0.72rem;color:#4a7c3f;margin-top:0.4rem;word-break:break-all}
+
+    .divider{border:none;border-top:1px solid #1a1a1a;margin:2rem 0}
+
+    .back-link{display:block;text-align:center;font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#444;margin-top:1.5rem;text-decoration:none;transition:color 0.2s}
+    .back-link:hover{color:#888}
+
+    .steps{padding-left:1.25rem;margin-top:0.5rem}
+    .steps li{font-size:0.72rem;color:#555;line-height:1.8}
+    .steps li strong{color:#888}
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Tracking Admin</h1>
+  <p class="sub">Update your Garmin LiveTrack link before a race. Anyone can use this page to add their own tracking link.</p>
+
+  <!-- GARMIN SECTION -->
+  <div class="section">
+    <div class="section-label">Garmin LiveTrack URL</div>
+    <label for="garminInput">Paste your LiveTrack share link</label>
+    <input type="url" id="garminInput" placeholder="https://livetrack.garmin.com/session/..." />
+    <div class="hint">
+      How to get this link:<br>
+      <ol class="steps">
+        <li>On your Edge 530/540, go to <strong>Settings → Activity Tracking → LiveTrack</strong></li>
+        <li>Enable LiveTrack and tap <strong>Start Session</strong></li>
+        <li>Share the link to yourself via email or text</li>
+        <li>Paste that link above</li>
+      </ol>
+    </div>
+    <div class="current-val" id="currentGarmin"></div>
+    <button class="btn" onclick="saveGarmin()">Save Garmin Link</button>
+    <button class="btn btn-secondary" onclick="clearGarmin()">Clear / End Session</button>
+    <div class="status-msg" id="garminMsg"></div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- SPOT SECTION -->
+  <div class="section">
+    <div class="section-label">SPOT Feed Status</div>
+    <p class="hint" style="color:#444;">SPOT tracking runs automatically in the background using your satellite device. No action needed — it always stays on.</p>
+    <div style="margin-top:0.5rem">
+      <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid #4a7c3f;color:#5d9e50;padding:0.2rem 0.6rem;">Always Active</span>
+    </div>
+  </div>
+
+  <a class="back-link" href="tracking.html">← Back to Tracking Map</a>
+</div>
+
+<script>
+  // Show current saved value on load
+  const saved = localStorage.getItem("garminURL") || "";
+  if (saved) {
+    document.getElementById("currentGarmin").textContent = "Current: " + saved;
+    document.getElementById("garminInput").value = saved;
+  }
+
+  function saveGarmin() {
+    const val = document.getElementById("garminInput").value.trim();
+    if (!val) { showMsg("garminMsg", "error", "Please enter a valid URL."); return; }
+    if (!val.startsWith("http")) { showMsg("garminMsg", "error", "URL must start with http or https."); return; }
+    localStorage.setItem("garminURL", val);
+    document.getElementById("currentGarmin").textContent = "Saved: " + val;
+    showMsg("garminMsg", "success", "Garmin link saved! The tracking map will update automatically.");
+  }
+
+  function clearGarmin() {
+    localStorage.removeItem("garminURL");
+    document.getElementById("garminInput").value = "";
+    document.getElementById("currentGarmin").textContent = "";
+    showMsg("garminMsg", "success", "Garmin link cleared. SPOT tracking continues in background.");
+  }
+
+  function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = "status-msg " + type + " show";
+    el.textContent = text;
+    setTimeout(() => el.classList.remove("show"), 4000);
+  }
+</script>
+
+</body>
+</html>

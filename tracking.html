@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Tracking · TJ Stone</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #0a0a0a;
+      color: #f0f0ec;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: #0d0d0d;
+      border-bottom: 1px solid #1e1e1e;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-logo {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      color: #f0f0ec;
+    }
+
+    .header-logo span { color: #888; font-weight: 400; font-size: 0.85rem; margin-left: 0.5rem; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border: 1px solid #333;
+      color: #888;
+    }
+
+    .status-pill.live { border-color: #4a7c3f; color: #5d9e50; }
+    .status-pill.live .dot { background: #5d9e50; animation: pulse 1.5s infinite; }
+    .status-pill.stale { border-color: #555; color: #888; }
+    .status-pill.offline { border-color: #553333; color: #884444; }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #888;
+    }
+
+    .last-update {
+      font-size: 0.72rem;
+      color: #555;
+    }
+
+    /* ── LAYOUT ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: #0d0d0d;
+      border-right: 1px solid #1e1e1e;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-section {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .sidebar-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Position info */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
+
+    .info-key {
+      font-size: 0.72rem;
+      color: #555;
+    }
+
+    .info-val {
+      font-size: 0.72rem;
+      color: #ccc;
+      text-align: right;
+    }
+
+    /* Route checkboxes */
+    .route-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      cursor: pointer;
+      border-bottom: 1px solid #151515;
+    }
+
+    .route-item:last-child { border-bottom: none; }
+
+    .route-check {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #333;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .route-check.checked { border-color: var(--route-color); background: var(--route-color); }
+    .route-check.checked::after { content: '✓'; font-size: 9px; color: white; }
+
+    .route-swatch {
+      width: 20px;
+      height: 3px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .route-name {
+      font-size: 0.8rem;
+      color: #aaa;
+      flex: 1;
+    }
+
+    .route-item:hover .route-name { color: #f0f0ec; }
+
+    /* Refresh button */
+    .refresh-btn {
+      width: 100%;
+      padding: 0.65rem;
+      background: #111;
+      border: 1px solid #333;
+      color: #888;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 0.75rem;
+    }
+
+    .refresh-btn:hover { border-color: #f0f0ec; color: #f0f0ec; }
+
+    /* ── MAP ── */
+    #map {
+      flex: 1;
+      background: #111;
+    }
+
+    /* ── LEAFLET OVERRIDES ── */
+    .leaflet-popup-content-wrapper {
+      background: #0d0d0d !important;
+      border: 1px solid #333 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      color: #f0f0ec !important;
+    }
+
+    .leaflet-popup-tip { background: #0d0d0d !important; }
+    .leaflet-popup-close-button { color: #888 !important; }
+
+    .leaflet-control-zoom a {
+      background: #111 !important;
+      color: #888 !important;
+      border-color: #333 !important;
+    }
+
+    .leaflet-control-zoom a:hover { color: #fff !important; }
+
+    .leaflet-control-attribution {
+      background: rgba(10,10,10,0.8) !important;
+      color: #444 !important;
+    }
+
+    .leaflet-control-attribution a { color: #555 !important; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 640px) {
+      .sidebar { width: 100%; height: 180px; border-right: none; border-bottom: 1px solid #1e1e1e; }
+      .main { flex-direction: column; }
+      .sidebar-section { padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <div class="header-logo">TJ Stone <span>Live Tracking</span></div>
+      <div class="status-pill" id="statusPill">
+        <span class="dot"></span>
+        <span id="statusText">Loading...</span>
+      </div>
+    </div>
+    <div class="last-update" id="lastUpdate">—</div>
+  </header>
+
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Position Info -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Last Position</div>
+        <div class="info-row">
+          <span class="info-key">Lat</span>
+          <span class="info-val" id="infoLat">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Lng</span>
+          <span class="info-val" id="infoLng">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Time</span>
+          <span class="info-val" id="infoTime">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Type</span>
+          <span class="info-val" id="infoType">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Points</span>
+          <span class="info-val" id="infoPoints">—</span>
+        </div>
+        <button class="refresh-btn" onclick="fetchSPOT()">↻ Refresh Now</button>
+      </div>
+
+      <!-- Route Overlays -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Route Overlays</div>
+
+        <div class="route-item" onclick="toggleRoute('soldierHollow')">
+          <div class="route-check" id="chk-soldierHollow" style="--route-color:#e67e22;"></div>
+          <div class="route-swatch" style="background:#e67e22;"></div>
+          <div class="route-name">Soldier Hollow XC</div>
+        </div>
+
+        <div class="route-item" onclick="toggleRoute('cornerCanyon')">
+          <div class="route-check" id="chk-cornerCanyon" style="--route-color:#3498db;"></div>
+          <div class="route-swatch" style="background:#3498db;"></div>
+          <div class="route-name">Corner Canyon XC</div>
+        </div>
+
+        <div class="route-item" onclick="toggleRoute('snowbird')">
+          <div class="route-check" id="chk-snowbird" style="--route-color:#9b59b6;"></div>
+          <div class="route-swatch" style="background:#9b59b6;"></div>
+          <div class="route-name">Rage at Snowbird</div>
+        </div>
+
+        <div class="route-item" onclick="toggleRoute('saltLizard')">
+          <div class="route-check" id="chk-saltLizard" style="--route-color:#e74c3c;"></div>
+          <div class="route-swatch" style="background:#e74c3c;"></div>
+          <div class="route-name">Salty Lizard Gravel</div>
+        </div>
+
+        <div class="route-item" onclick="toggleRoute('wasatchAllRoad')">
+          <div class="route-check" id="chk-wasatchAllRoad" style="--route-color:#1abc9c;"></div>
+          <div class="route-swatch" style="background:#1abc9c;"></div>
+          <div class="route-name">Wasatch All-Road</div>
+        </div>
+
+      </div>
+
+      <!-- GPX Upload -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Add Custom Route</div>
+        <div style="font-size:0.72rem; color:#555; margin-bottom:0.5rem;">Upload a GPX file to overlay your own route</div>
+        <input type="file" accept=".gpx" id="gpxUpload" style="display:none;" onchange="loadGPX(this)"/>
+        <button class="refresh-btn" onclick="document.getElementById('gpxUpload').click()">+ Upload GPX</button>
+      </div>
+
+    </div>
+
+    <!-- MAP -->
+    <div id="map"></div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+
+    const FEED_ID = "0MEGXy63EBb4ZJnr4qqWjpSI0cHbVJlMg";
+    const SPOT_URL = `https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/${FEED_ID}/message.json`;
+    const REFRESH_MS = 150000; // 2.5 minutes
+
+    // ── MAP SETUP ──
+    const map = L.map("map", {
+      center: [40.5, -111.8],
+      zoom: 9,
+      zoomControl: true
+    });
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: "abcd",
+      maxZoom: 19
+    }).addTo(map);
+
+    // ── MARKERS & LAYERS ──
+    let trackPoints   = [];
+    let trackLine     = null;
+    let currentMarker = null;
+    let routeLayers   = {};
+    let routeState    = {};
+
+    // Current position marker (pulsing dot)
+    const currentIcon = L.divIcon({
+      className: "",
+      html: `<div style="
+        width:16px; height:16px;
+        background:#5d9e50;
+        border:3px solid #0d0d0d;
+        border-radius:50%;
+        box-shadow:0 0 0 3px rgba(93,158,80,0.4);
+      "></div>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+
+    const breadcrumbIcon = L.divIcon({
+      className: "",
+      html: `<div style="width:6px;height:6px;background:#4a7c3f;border-radius:50%;opacity:0.7;"></div>`,
+      iconSize: [6, 6],
+      iconAnchor: [3, 3]
+    });
+
+    // ── FETCH SPOT DATA ──
+    function fetchSPOT() {
+      document.getElementById("statusText").textContent = "Fetching...";
+
+      fetch(SPOT_URL)
+        .then(r => r.json())
+        .then(data => {
+          const response = data.response;
+
+          if (response.errors) {
+            setStatus("offline", "No Data");
+            return;
+          }
+
+          const msgs = response.feedMessageResponse?.messages?.message;
+          if (!msgs) { setStatus("offline", "No Messages"); return; }
+
+          const messages = Array.isArray(msgs) ? msgs : [msgs];
+
+          // Filter to track/OK messages with valid coords
+          const points = messages
+            .filter(m => m.latitude !== -99999 && m.longitude !== -99999)
+            .sort((a, b) => a.unixTime - b.unixTime);
+
+          if (points.length === 0) { setStatus("offline", "No Position"); return; }
+
+          const latest = points[points.length - 1];
+          const ageMin = (Date.now() / 1000 - latest.unixTime) / 60;
+
+          // Update status
+          if (ageMin < 15) setStatus("live", "Live");
+          else if (ageMin < 120) setStatus("stale", `${Math.round(ageMin)}m ago`);
+          else setStatus("offline", "Offline");
+
+          // Update info panel
+          document.getElementById("infoLat").textContent   = latest.latitude.toFixed(5);
+          document.getElementById("infoLng").textContent   = latest.longitude.toFixed(5);
+          document.getElementById("infoTime").textContent  = new Date(latest.unixTime * 1000).toLocaleTimeString();
+          document.getElementById("infoType").textContent  = latest.messageType || "—";
+          document.getElementById("infoPoints").textContent = points.length;
+          document.getElementById("lastUpdate").textContent = "Updated " + new Date().toLocaleTimeString();
+
+          // Draw breadcrumb trail
+          const latlngs = points.map(p => [p.latitude, p.longitude]);
+          if (trackLine) map.removeLayer(trackLine);
+          trackLine = L.polyline(latlngs, {
+            color: "#4a7c3f",
+            weight: 2,
+            opacity: 0.7,
+            dashArray: "4 4"
+          }).addTo(map);
+
+          // Drop breadcrumb dots (skip last — that's the main marker)
+          points.slice(0, -1).forEach(p => {
+            L.marker([p.latitude, p.longitude], { icon: breadcrumbIcon }).addTo(map);
+          });
+
+          // Current position marker
+          if (currentMarker) map.removeLayer(currentMarker);
+          currentMarker = L.marker([latest.latitude, latest.longitude], { icon: currentIcon })
+            .addTo(map)
+            .bindPopup(`
+              <div style="font-family:Arial,sans-serif;">
+                <div style="font-size:0.65rem;letter-spacing:.15em;text-transform:uppercase;color:#888;margin-bottom:4px;">Last Known Position</div>
+                <div style="font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:4px;">${latest.messageType}</div>
+                <div style="font-size:0.75rem;color:#aaa;">${new Date(latest.unixTime * 1000).toLocaleString()}</div>
+                <div style="font-size:0.75rem;color:#aaa;">${latest.latitude.toFixed(5)}, ${latest.longitude.toFixed(5)}</div>
+              </div>
+            `);
+
+          // Pan to latest position
+          map.setView([latest.latitude, latest.longitude], Math.max(map.getZoom(), 11));
+        })
+        .catch(err => {
+          console.warn("SPOT fetch error:", err);
+          setStatus("offline", "Error");
+        });
+    }
+
+    function setStatus(state, text) {
+      const pill = document.getElementById("statusPill");
+      const dot  = pill.querySelector(".dot");
+      pill.className = "status-pill " + state;
+      document.getElementById("statusText").textContent = text;
+      dot.style.background = state === "live" ? "#5d9e50" : state === "stale" ? "#888" : "#884444";
+    }
+
+    // ── ROUTE OVERLAYS ──
+    // Placeholder coords — replace with real GPX data or I can load from files
+    const routes = {
+      soldierHollow: {
+        color: "#e67e22",
+        coords: [
+          [40.4305, -111.4390],[40.4320, -111.4360],[40.4345, -111.4330],
+          [40.4370, -111.4310],[40.4390, -111.4350],[40.4375, -111.4390],
+          [40.4350, -111.4410],[40.4320, -111.4405],[40.4305, -111.4390]
+        ]
+      },
+      cornerCanyon: {
+        color: "#3498db",
+        coords: [
+          [40.5100, -111.8300],[40.5130, -111.8260],[40.5160, -111.8220],
+          [40.5190, -111.8250],[40.5180, -111.8290],[40.5150, -111.8320],
+          [40.5120, -111.8330],[40.5100, -111.8300]
+        ]
+      },
+      snowbird: {
+        color: "#9b59b6",
+        coords: [
+          [40.5835, -111.6575],[40.5855, -111.6540],[40.5880, -111.6510],
+          [40.5900, -111.6545],[40.5885, -111.6580],[40.5860, -111.6600],
+          [40.5835, -111.6575]
+        ]
+      },
+      saltLizard: {
+        color: "#e74c3c",
+        coords: [
+          [40.7375, -114.0369],[40.7350, -114.0200],[40.7300, -114.0050],
+          [40.7250, -113.9900],[40.7200, -113.9750],[40.7180, -113.9600],
+          [40.7200, -113.9450],[40.7250, -113.9300]
+        ]
+      },
+      wasatchAllRoad: {
+        color: "#1abc9c",
+        coords: [
+          [40.5069, -111.4133],[40.5100, -111.3900],[40.5150, -111.3700],
+          [40.5200, -111.3500],[40.5250, -111.3700],[40.5230, -111.3900],
+          [40.5200, -111.4100],[40.5150, -111.4150],[40.5069, -111.4133]
+        ]
+      }
+    };
+
+    function toggleRoute(id) {
+      const chk = document.getElementById("chk-" + id);
+
+      if (routeState[id]) {
+        // Remove
+        if (routeLayers[id]) { map.removeLayer(routeLayers[id]); delete routeLayers[id]; }
+        chk.classList.remove("checked");
+        routeState[id] = false;
+      } else {
+        // Add
+        const r = routes[id];
+        routeLayers[id] = L.polyline(r.coords, {
+          color: r.color,
+          weight: 3,
+          opacity: 0.85
+        }).addTo(map);
+        chk.classList.add("checked");
+        routeState[id] = true;
+        map.fitBounds(routeLayers[id].getBounds(), { padding: [40, 40] });
+      }
+    }
+
+    // ── GPX UPLOAD ──
+    function loadGPX(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const parser = new DOMParser();
+        const gpx    = parser.parseFromString(e.target.result, "text/xml");
+        const pts    = gpx.querySelectorAll("trkpt");
+        if (pts.length === 0) { alert("No track points found in GPX file."); return; }
+        const coords = Array.from(pts).map(p => [
+          parseFloat(p.getAttribute("lat")),
+          parseFloat(p.getAttribute("lon"))
+        ]);
+        const color = "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
+        const layer = L.polyline(coords, { color, weight: 3, opacity: 0.85 }).addTo(map);
+        map.fitBounds(layer.getBounds(), { padding: [40, 40] });
+
+        // Add to sidebar
+        const name = file.name.replace(".gpx", "");
+        const id   = "gpx_" + Date.now();
+        routes[id] = { color, coords };
+        routeLayers[id] = layer;
+        routeState[id]  = true;
+
+        const section = document.querySelector(".sidebar-section:nth-child(2)");
+        const item = document.createElement("div");
+        item.className = "route-item";
+        item.innerHTML = `
+          <div class="route-check checked" id="chk-${id}" style="--route-color:${color};"></div>
+          <div class="route-swatch" style="background:${color};"></div>
+          <div class="route-name">${name}</div>`;
+        item.onclick = () => toggleRoute(id);
+        section.appendChild(item);
+      };
+      reader.readAsText(file);
+      input.value = "";
+    }
+
+    // ── INIT ──
+    fetchSPOT();
+    setInterval(fetchSPOT, REFRESH_MS);
+
+  </script>
+
+</body>
+</html>
